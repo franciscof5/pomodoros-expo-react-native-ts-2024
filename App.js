@@ -1,9 +1,8 @@
 import { StatusBar } from 'expo-status-bar';
-import { React, Button, StyleSheet, Text, View, Alert, Title } from 'react-native';
+import { React, Button, StyleSheet, Text, View, Image, Alert, Title } from 'react-native';
 import { useState } from 'react';
-import { CountdownCircleTimer } from 'react-native-countdown-circle-timer'
-
-
+import { CountdownCircleTimer } from 'react-native-countdown-circle-timer';
+const foca = require("./images/mascote_foca.png")
 
 const UrgeWithPleasureComponent = ( () => {
   let pomodoroTime = 5;
@@ -50,7 +49,6 @@ const UrgeWithPleasureComponent = ( () => {
       </CountdownCircleTimer>
       <Button title={buttonTitle} onPress={()=>{
         setDurationR(pomodoroTime)
-        newInitialRemainingTime=100;
         if (isPlayingR==true) {
           setKey(prevKey => prevKey + 1)
           setIsPlayingR(false)
@@ -70,6 +68,7 @@ export default function App() {
       {/* <Text>Open up App.js to start working on your app!</Text> */}
       <StatusBar style="auto" />
       <UrgeWithPleasureComponent />
+      <Image source={foca} style={styles.imageLogo}/>
     </View>
   );
 }
@@ -88,6 +87,10 @@ const styles = StyleSheet.create({
   titleText: {
     fontSize: 50,
     fontWeight: 'bold',
+  },
+  imageLogo: {
+    width: "100px",
+    height: "100px",
   },
 });
 
