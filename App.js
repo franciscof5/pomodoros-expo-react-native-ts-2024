@@ -3,6 +3,8 @@ import { React, Button, StyleSheet, Text, TextInput, View, Image, TouchableOpaci
 import { useEffect, useState } from 'react';
 import { CountdownCircleTimer } from 'react-native-countdown-circle-timer';
 import { Audio } from 'expo-av';
+import { AppRegistry } from 'react-native';
+import { ProgressBar, MD3Colors, PaperProvider } from 'react-native-paper';
 
 const foca = require("./images/mascote_foca.png")
 const soundStart = require("./sounds/crank-2.mp3")
@@ -10,8 +12,8 @@ const soundTrompeth = require("./sounds/77711__sorohanro__solo-trumpet-06in-f-90
 const soundRing = require("./sounds/telephone-ring-1.mp3")
 
 const UrgeWithPleasureComponent = ( () => {
-  let pomodoroTime = 10;
-  let restTime=5;
+  let pomodoroTime = 5;
+  let restTime=2;
   const [key, setKey] = useState(0);
   const [isPlayingR, setIsPlayingR] = useState(0);
   const [durationR, setDurationR] = useState(pomodoroTime);
@@ -19,6 +21,7 @@ const UrgeWithPleasureComponent = ( () => {
   const [pomodorosDone, setPomodorosDone] = useState(0);
   const [isPomodoroTime, setIsPomodoroTime] = useState(true);
   const [sound, setSound] = useState();
+  const [remainingTime, setRemainingTime] = useState();
 
   async function playSound(soundR) {
     const { sound } = await Audio.Sound.createAsync( soundR );
@@ -52,11 +55,11 @@ const UrgeWithPleasureComponent = ( () => {
       setKey(prevKey => prevKey + 1)
       setIsPlayingR(false)
       setButtonTitle("Iniciar")
-      playSound(soundStart)
+      playSound(soundRing)
     } else {
       setIsPlayingR(true)
       setButtonTitle("Parar")
-      playSound(soundRing)          
+      playSound(soundStart)          
     }
   }
 
@@ -82,6 +85,8 @@ const UrgeWithPleasureComponent = ( () => {
         }
       </CountdownCircleTimer>
 
+      <ProgressBar style={{height:20, marginTop:20,marginBottom:20}} progress={0.01+(pomodorosDone/4)} color={MD3Colors.error50} />
+
       <TaskPanel />
 
       <View style={styles.mascotView}>
@@ -101,11 +106,13 @@ const TaskPanel = ( () =>{
 })
 export default function App() {
   return (
-    <View style={styles.container}>
-      {/* <Text>Open up App.js to start working on your app!</Text> */}
-      <StatusBar style="auto" />
-      <UrgeWithPleasureComponent />
-    </View>
+    <PaperProvider>
+      <View style={styles.container}>
+        {/* <Text>Open up App.js to start working on your app!</Text> */}
+        <StatusBar style="auto" />
+        <UrgeWithPleasureComponent />
+      </View>
+    </PaperProvider>
   );
 }
 
