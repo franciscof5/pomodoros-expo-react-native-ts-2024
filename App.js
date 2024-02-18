@@ -1,27 +1,38 @@
 import { StatusBar } from 'expo-status-bar';
-import { React, Button, StyleSheet, Text, View, Image, TouchableOpacity, Alert, Title } from 'react-native';
-import { useState } from 'react';
+import { React, Button, StyleSheet, Text, TextInput, View, Image, TouchableOpacity, Alert, Title } from 'react-native';
+import { useEffect, useState } from 'react';
 import { CountdownCircleTimer } from 'react-native-countdown-circle-timer';
+import { Audio } from 'expo-av';
+
 const foca = require("./images/mascote_foca.png")
-
-
+const soundStart = require("./sounds/crank-2.mp3")
+const soundTrompeth = require("./sounds/77711__sorohanro__solo-trumpet-06in-f-90bpm.mp3")
+const soundRing = require("./sounds/telephone-ring-1.mp3")
 
 const UrgeWithPleasureComponent = ( () => {
-  let pomodoroTime = 2;
-  let restTime=1;
+  let pomodoroTime = 10;
+  let restTime=5;
   const [key, setKey] = useState(0);
   const [isPlayingR, setIsPlayingR] = useState(0);
   const [durationR, setDurationR] = useState(pomodoroTime);
   const [buttonTitle, setButtonTitle] = useState("Iniciar");
   const [pomodorosDone, setPomodorosDone] = useState(0);
   const [isPomodoroTime, setIsPomodoroTime] = useState(true);
-  
+  const [sound, setSound] = useState();
+
+  async function playSound(soundR) {
+    const { sound } = await Audio.Sound.createAsync( soundR );
+    setSound(sound);
+    await sound.playAsync();
+  }
+
   const completeCicle = function() {
     if (isPomodoroTime==true) {
       //it just completed a pomodoro
       setPomodorosDone(pomodorosDone+1)
       setIsPomodoroTime(false)
       setDurationR(restTime)
+      playSound(soundTrompeth)
     } else {
       //it just finished a rest
       setIsPomodoroTime(true)
@@ -41,9 +52,11 @@ const UrgeWithPleasureComponent = ( () => {
       setKey(prevKey => prevKey + 1)
       setIsPlayingR(false)
       setButtonTitle("Iniciar")
+      playSound(soundStart)
     } else {
       setIsPlayingR(true)
-      setButtonTitle("Parar");          
+      setButtonTitle("Parar")
+      playSound(soundRing)          
     }
   }
 
@@ -68,6 +81,9 @@ const UrgeWithPleasureComponent = ( () => {
             </View>
         }
       </CountdownCircleTimer>
+
+      <TaskPanel />
+
       <View style={styles.mascotView}>
         <Image source={foca} style={styles.mascotImage}/>
         <Text style={styles.mascotText}>{buttonTitle} / pomodoros done {pomodorosDone}  </Text>
@@ -76,6 +92,13 @@ const UrgeWithPleasureComponent = ( () => {
   )
 })
 
+const TaskPanel = ( () =>{
+  return (
+    <View>
+      <Text>Tarefa</Text>
+    </View>
+  )
+})
 export default function App() {
   return (
     <View style={styles.container}>
