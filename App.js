@@ -9,8 +9,11 @@ import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
+import Constants from "expo-constants";
+
 const Stack = createStackNavigator();
 
+import Login from "./pages/Login"
 import Focus from "./pages/Focus";
 
 // Notifications.setNotificationHandler({
@@ -144,8 +147,9 @@ export default function App() {
   return (
     <PaperProvider>
       <NavigationContainer>
-        <Stack.Navigator initialRouteName="Focus">
-          <Stack.Screen name="Focus" component={Focus} />
+        <Stack.Navigator initialRouteName="Login">
+        <Stack.Screen name="Login" component={Login} />
+        <Stack.Screen name="Focus" component={Focus} />
         </Stack.Navigator>
       </NavigationContainer>
     </PaperProvider>
@@ -155,9 +159,19 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    justifyContent: "center",
+    paddingTop: Constants.statusBarHeight,
+    backgroundColor: "#ecf0f1",
+    padding: 8,
+    //
     backgroundColor: '#DDD',
     alignItems: 'center',
-    justifyContent: 'center',
+  },
+  paragraph: {
+    margin: 24,
+    fontSize: 18,
+    fontWeight: "bold",
+    textAlign: "center",
   },
   countdownCircleTimer: {
     width:"1000px",

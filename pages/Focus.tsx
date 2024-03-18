@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import { Platform, React, Button, StyleSheet, Text, TextInput, View, Image, TouchableOpacity, Alert, Title } from 'react-native';
+import { Platform, Button, StyleSheet, Text, TextInput, View, Image, TouchableOpacity, Alert } from 'react-native';
 import { useState, useEffect, useRef } from 'react';
 import { CountdownCircleTimer } from 'react-native-countdown-circle-timer';
 import { Audio } from 'expo-av';
@@ -8,6 +8,7 @@ import { ProgressBar, MD3Colors, PaperProvider } from 'react-native-paper';
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import axios from 'axios';
+import { WizardStore } from "../storage";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -26,12 +27,12 @@ const UrgeWithPleasureComponent = ( () => {
   let pomodoroTime = 25;
   let restTime=5;
   const [key, setKey] = useState(0);
-  const [isPlayingR, setIsPlayingR] = useState(0);
+  const [isPlayingR, setIsPlayingR] = useState(Boolean);
   const [durationR, setDurationR] = useState(pomodoroTime);
   const [buttonTitle, setButtonTitle] = useState("Iniciar");
   const [pomodorosDone, setPomodorosDone] = useState(0);
   const [isPomodoroTime, setIsPomodoroTime] = useState(true);
-  const [sound, setSound] = useState();
+  const [sound, setSound] = useState(null);
   const [remainingTime, setRemainingTime] = useState();
 
   async function playSound(soundR) {
@@ -98,7 +99,7 @@ const UrgeWithPleasureComponent = ( () => {
 
       <ProgressBar style={{height:20, marginTop:20,marginBottom:20}} progress={0.01+(pomodorosDone/4)} color={MD3Colors.error50} />
 
-      <View style={styles.mascotView}>
+      <View>
         <Image source={foca} style={styles.mascotImage}/>
         <Text style={styles.mascotText}>{buttonTitle} / pomodoros done {pomodorosDone}  </Text>
       </View>
@@ -142,16 +143,42 @@ export default function App() {
   async function load_session() {
     console.log("r1");
 
-    data = {
-      action: "load_session",
-      t: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL3d3dy5wb21vZG9yb3MuY29tLmJyIiwiaWF0IjoxNzEwMjU5ODkwLCJuYmYiOjE3MTAyNTk4OTAsImV4cCI6MTcxMDg2NDY5MCwiZGF0YSI6eyJ1c2VyIjp7ImlkIjoiMiJ9fX0.EZpKRy6aM-x1nVGShMF_uLhfWmPkPb3iyWkZk6Mx2Ms"
+    var options = {
+      method: 'GET',
+      url: 'https://www.pomodoros.com.br/wp-admin/admin-ajax.php',
+      params: {
+        action: 'load_session',
+        t: WizardStore.getRawState().token
+      },
     };
-    await axios.get("https://www.pomodoros.com.br/wp-admin/admin-ajax.php?action=load_session&t=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL3d3dy5wb21vZG9yb3MuY29tLmJyIiwiaWF0IjoxNzEwMjU5ODkwLCJuYmYiOjE3MTAyNTk4OTAsImV4cCI6MTcxMDg2NDY5MCwiZGF0YSI6eyJ1c2VyIjp7ImlkIjoiMiJ9fX0.EZpKRy6aM-x1nVGShMF_uLhfWmPkPb3iyWkZk6Mx2Ms", data)
-    .then((r)=> {
+    
+    axios.request(options).then(function (r) {
       setRdata(r.data);
-      //rdata = r.data;
-      console.log("r", r);
+      console.log(r.data);
+      let secsP = r.data.secondsRemainingFromPHP;
+      let post_status = r.data.post_status;
+      console.log("secsP", secsP);
+      console.log("post_status", post_status);
+    }).catch(function (error) {
+      console.error(error);
     });
+
+    // let data_load_session = {
+    //   method: "GET",
+    //   action: "load_session",
+    //   t: WizardStore.getRawState().token,
+    // };
+    // await axios.request("https://www.pomodoros.com.br/wp-admin/admin-ajax.php", data_load_session)
+    // .then((r)=> {
+    //   setRdata(r.data);
+    //   let secsP = r.data.secondsRemainingFromPHP;
+    //   //pomodoroTime = r.data.secondsRemainingFromPHP;
+    //   //rdata = r.data;
+    //   console.log("secsP", secsP);
+    // })
+    // .catch(function (error) {
+    //   console.error(error);
+    // });
   }
 
   return (
@@ -159,6 +186,8 @@ export default function App() {
       <View style={styles.container}>
         {/* <Text>Open up App.js to start working on your app!</Text> */}
         <StatusBar style="auto" />
+        <Text>{WizardStore.getRawState().user.username}</Text>
+        <Text>{rdata["post_status"] ? rdata["post_status"] : "loading..."}</Text>
         <UrgeWithPleasureComponent />
         <TaskPanel rdata={rdata} titleIn={rdata["post_title"]}  />
         <Text>{rdata["post_title"]} - Your expo push token: {expoPushToken}</Text>
@@ -186,7 +215,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   countdownCircleTimer: {
-    width:"1000px",
+    width:1000,
     backgroundColor: "#09d",
   },
   buttonFloat: {
@@ -196,19 +225,21 @@ const styles = StyleSheet.create({
     height: 300,
     backgroundColor: "transparent",
   },
-  // mascotView: {
-  //   flex:1,
-  //   flexDirection: "row", 
-  // },
+  mascotView: {
+     flex:1,
+     backgroundColor: "red",
+     flexDirection: "row", 
+     height: 10,
+  },
   mascotImage: {
-    width: "100px",
-    height: "100px",
+    width: 100,
+    height: 100,
   },
   mascotText: {
-    padding:"10px",
-    margin:"10px",
-    width:"100px",
-    height:"100px",
+    padding:10,
+    margin:10,
+    width:200,
+    height:80,
     borderRadius:5,
     backgroundColor:"#EEE",
   },
@@ -225,7 +256,7 @@ async function schedulePushNotification() {
       body: 'Here is the notification body',
       data: { data: 'goes here' },
     },
-    trigger: { seconds: 2 },
+    trigger: { seconds: 10 },
   });
 }
 
@@ -257,7 +288,7 @@ async function registerForPushNotificationsAsync() {
     token = (await Notifications.getExpoPushTokenAsync({ projectId: 'your-project-id' })).data;
     console.log(token);
   } else {
-    alert('Must use physical device for Push Notifications');
+    console.log('Must use physical device for Push Notifications');
   }
 
   return token;
