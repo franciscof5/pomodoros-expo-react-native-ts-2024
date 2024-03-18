@@ -10,6 +10,7 @@ import * as Notifications from 'expo-notifications';
 import axios from 'axios';
 import { WizardStore } from "../storage";
 
+
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
