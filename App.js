@@ -10,6 +10,7 @@ import * as Notifications from 'expo-notifications';
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import Constants from "expo-constants";
+import { RootSiblingParent } from 'react-native-root-siblings';
 
 const Stack = createStackNavigator();
 
@@ -24,12 +25,14 @@ export default function App() {
 
   return (
     <PaperProvider>
-      <NavigationContainer>
-        <Stack.Navigator initialRouteName="Login">
-        <Stack.Screen name="Login" component={Login} />
-        <Stack.Screen name="Focus" component={Focus} />
-        </Stack.Navigator>
-      </NavigationContainer>
+      <RootSiblingParent>
+        <NavigationContainer>
+          <Stack.Navigator initialRouteName="Login">
+          <Stack.Screen name="Login" component={Login} />
+          <Stack.Screen name="Focus" component={Focus} />
+          </Stack.Navigator>
+        </NavigationContainer>
+      </RootSiblingParent>
     </PaperProvider>
   );
 }

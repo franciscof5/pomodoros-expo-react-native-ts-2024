@@ -7,6 +7,7 @@ import { WizardStore } from "../storage";
 import { Button, MD3Colors, ProgressBar, TextInput } from "react-native-paper";
 import { useIsFocused } from "@react-navigation/native";
 import axios from "axios"; 
+import Toast from 'react-native-root-toast';
 
 //import { jsonFieldsChecklist } from "../assets/jsonFieldsChecklist.json"
 //import { data } from "../assets/data.json"
@@ -37,6 +38,7 @@ export default function LoginScreen({ navigation }) {
       WizardStore.update((s) => {
         s.progress = 0;
       });
+      
   }, [isFocused]);
 
   const onSubmit = (data) => {
@@ -54,7 +56,7 @@ export default function LoginScreen({ navigation }) {
         method: 'POST',
         url: 'https://www.pomodoros.com.br/wp-json/wp/v2/users/me',
         headers: {
-          Authorization: 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL3d3dy5wb21vZG9yb3MuY29tLmJyIiwiaWF0IjoxNzEwNzkxMjI2LCJuYmYiOjE3MTA3OTEyMjYsImV4cCI6MTcxMTM5NjAyNiwiZGF0YSI6eyJ1c2VyIjp7ImlkIjoiMTg5In19fQ.qJq1f20j1CKEHeDs4iISq8FrptWfZKISzgSn7-Nxn8E'
+          Authorization: 'Bearer ' + token,
         }
       };
       
@@ -65,9 +67,11 @@ export default function LoginScreen({ navigation }) {
           WizardStore.update((s)=> {
             s.token = token;
             s.user = r2.data;
+            let toast = Toast.show('Bem vindo ' + r2.data.username, { position: 0 });
           })
           navigation.navigate("Focus");
       }).catch(function (error) {
+        let toast = Toast.show('Erro ao recuperar dados do usuário', { position: 0 });
         console.error(error);
       });
 

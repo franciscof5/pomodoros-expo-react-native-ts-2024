@@ -24,12 +24,19 @@ const soundStart = require("../sounds/crank-2.mp3")
 const soundTrompeth = require("../sounds/77711__sorohanro__solo-trumpet-06in-f-90bpm.mp3")
 const soundRing = require("../sounds/telephone-ring-1.mp3")
 
+function setSecondsRemainingFromPHP(val) {
+  WizardStore.update((s)=>{
+    s.secondsRemainingFromPHP = val;
+  })
+}
+
+let pomodoroTime = WizardStore.getRawState().session_object.pomodoroTime;
+let restTime=WizardStore.getRawState().session_object.restTime;
+
 const UrgeWithPleasureComponent = ( () => {
-  let pomodoroTime = 25;
-  let restTime=5;
+  const [secondsRemainingInsideClock, setSecondsRemainingInsideClock] = useState(pomodoroTime);
   const [key, setKey] = useState(0);
   const [isPlayingR, setIsPlayingR] = useState(Boolean);
-  const [durationR, setDurationR] = useState(pomodoroTime);
   const [buttonTitle, setButtonTitle] = useState("Iniciar");
   const [pomodorosDone, setPomodorosDone] = useState(0);
   const [isPomodoroTime, setIsPomodoroTime] = useState(true);
@@ -47,12 +54,12 @@ const UrgeWithPleasureComponent = ( () => {
       //it just completed a pomodoro
       setPomodorosDone(pomodorosDone+1)
       setIsPomodoroTime(false)
-      setDurationR(restTime)
+      setSecondsRemainingFromPHP(restTime)
       playSound(soundTrompeth)
     } else {
       //it just finished a rest
       setIsPomodoroTime(true)
-      setDurationR(pomodoroTime)
+      setSecondsRemainingFromPHP(pomodoroTime)
     }
     //always has to setKey
     setKey(prevKey => prevKey + 1)
@@ -63,7 +70,7 @@ const UrgeWithPleasureComponent = ( () => {
   }
 
   const actioButton = function() {
-    setDurationR(pomodoroTime)
+    setSecondsRemainingFromPHP(pomodoroTime)
     if (isPlayingR==true) {
       setKey(prevKey => prevKey + 1)
       setIsPlayingR(false)
@@ -84,7 +91,7 @@ const UrgeWithPleasureComponent = ( () => {
         size={300}
         strokeWidth={25}
         isPlaying={isPlayingR}
-        duration={durationR}
+        duration={WizardStore.getRawState().secondsRemainingFromPHP}
         colors={['#004777', '#F7B801', '#A30000', '#A30000']}
         colorsTime={[7, 5, 2, 0]}
         onComplete={ () => {
@@ -93,7 +100,7 @@ const UrgeWithPleasureComponent = ( () => {
       >
         {({ remainingTime }) => <View>
             <Text style={styles.titleText}>{returnSecondToClock(remainingTime)}</Text>
-            {/* <Text>seconds: {durationR}</Text> */}
+            {/* <Text>seconds: {secondsRemainingFromPHP}</Text> */}
             </View>
         }
       </CountdownCircleTimer>
@@ -152,14 +159,22 @@ export default function App() {
         t: WizardStore.getRawState().token
       },
     };
-    
+    console.log("options", options)
     axios.request(options).then(function (r) {
-      setRdata(r.data);
-      console.log(r.data);
+      setRdata(r.data.post_object);
+      console.log("r.data.post_object", r.data.post_object);
       let secsP = r.data.secondsRemainingFromPHP;
-      let post_status = r.data.post_status;
+      let post_status = r.data.post_object.post_status;
       console.log("secsP", secsP);
       console.log("post_status", post_status);
+      if(post_status=="future") {
+        setSecondsRemainingFromPHP(secsP)
+      } else {
+        setSecondsRemainingFromPHP(pomodoroTime)
+      }
+      WizardStore.update((s)=>{
+        s.post_object = r.data.post_object
+      })
     }).catch(function (error) {
       console.error(error);
     });
@@ -187,11 +202,18 @@ export default function App() {
       <View style={styles.container}>
         {/* <Text>Open up App.js to start working on your app!</Text> */}
         <StatusBar style="auto" />
-        <Text>{WizardStore.getRawState().user.username}</Text>
-        <Text>{rdata["post_status"] ? rdata["post_status"] : "loading..."}</Text>
+        <Button 
+          title="load_session()"
+          onPress={
+          async () => {
+            await load_session()
+          }} />
+        <Text>Name: {WizardStore.getRawState().user.username} | {WizardStore.getRawState().user.id}</Text>
+        <Text>{WizardStore.getRawState().post_object.post_status ? WizardStore.getRawState().post_object.post_status + " | " + WizardStore.getRawState().post_object.post_title : "loading..."}</Text>
+        {/* <Text>TT{ WizardStore.getRawState().post_object["post_status"] }</Text> */}
         <UrgeWithPleasureComponent />
-        <TaskPanel rdata={rdata} titleIn={rdata["post_title"]}  />
-        <Text>{rdata["post_title"]} - Your expo push token: {expoPushToken}</Text>
+        <TaskPanel />
+        <Text>{WizardStore.getRawState().post_object.post_title} - Your expo push token: {expoPushToken}</Text>
       <View style={{ alignItems: 'center', justifyContent: 'center' }}>
         <Text>Title: {notification && notification.request.content.title} </Text>
         <Text>Body: {notification && notification.request.content.body}</Text>
